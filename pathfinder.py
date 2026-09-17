@@ -51,3 +51,15 @@ print(f"found target: {h_name} at ({h_lat}, {h_lng})")
 print("mapping hospital to the nearest graph node...")
 target_node = ox.distance.nearest_nodes(G, h_lng, h_lat)
 print(f"target mapped to node ID: {target_node}")
+
+# --- PATHFINDING ALGORITHMS ---
+
+import heapq
+
+def dijkstra_array(graph, source, target):
+    # node-indexed array implementation for O(n^2) efficiency
+    pass
+
+def dijkstra_heap(graph, source, target):
+    # min-heap priority queue implementation for O(m log n) efficiency
+    pass
