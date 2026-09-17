@@ -1,0 +1,18 @@
+# Ignore custom dev workflow documents from version control
+preplan.md
+projectlog.md
+test.md
+
+# Do not ignore README.md or Jupyter Notebooks
+!README.md
+!*.ipynb
+
+# Standard Python ignores
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+.env
+.venv/
+cache/
+*.png
