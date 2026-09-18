@@ -3,3 +3,4 @@ googlemaps
 jupyter
 networkx
 matplotlib
+scikit-learn

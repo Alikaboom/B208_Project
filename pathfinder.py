@@ -56,49 +56,37 @@ print(f"target mapped to node ID: {target_node}")
 
 import heapq
 
-def dijkstra_array(graph, source, target):
-    # node-indexed array implementation for O(n^2) efficiency
-    nodes = list(graph.nodes)
-    distances = {node: float('inf') for node in nodes}
-    previous = {node: None for node in nodes}
-    distances[source] = 0
+from collections import deque
+
+def bfs_shortest_path(graph, source, target):
+    # unweighted breadth-first search using a FIFO queue
+    # optimizes for fewest number of intersections (hops)
+    visited = set([source])
+    previous = {node: None for node in graph.nodes}
     
-    unvisited = set(nodes)
+    queue = deque([source])
     
-    while unvisited:
-        # find the unvisited node with the smallest distance (O(n) scan)
-        current = None
-        min_dist = float('inf')
-        for node in unvisited:
-            if distances[node] < min_dist:
-                min_dist = distances[node]
-                current = node
-                
-        # if the remaining nodes are unreachable or we reached the target, stop
-        if current is None or current == target:
+    while queue:
+        current = queue.popleft()
+        
+        if current == target:
             break
             
-        unvisited.remove(current)
-        
-        # update neighbors
         for neighbor in graph.neighbors(current):
-            if neighbor in unvisited:
-                # osmnx graphs can have multiple edges between nodes, pick the shortest
-                edge_data = graph.get_edge_data(current, neighbor)
-                weight = min([d['length'] for d in edge_data.values()])
+            if neighbor not in visited:
+                visited.add(neighbor)
+                previous[neighbor] = current
+                queue.append(neighbor)
                 
-                alt = distances[current] + weight
-                if alt < distances[neighbor]:
-                    distances[neighbor] = alt
-                    previous[neighbor] = current
-                    
+    # basic backtracking logic
     path = []
     curr = target
+    
     while curr is not None:
         path.insert(0, curr)
         curr = previous[curr]
         
-    return path, distances[target]
+    return path, len(path) - 1
 
 def dijkstra_heap(graph, source, target):
     # min-heap priority queue implementation for O(m log n) efficiency
