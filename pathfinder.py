@@ -168,3 +168,6 @@ if __name__ == "__main__":
         
         print(f"array dijkstra -> dist: {arr_dist:.2f}m, time: {arr_time:.4f}s, mem: {arr_mem:.1f}KB")
         print(f"heap  dijkstra -> dist: {heap_dist:.2f}m, time: {heap_time:.4f}s, mem: {heap_mem:.1f}KB")
+        
+        # save the route as an image
+        ox.plot_graph_route(G, heap_path, route_color='r', route_linewidth=4, node_size=0, show=False, save=True, filepath=f"scenario_{i}_route.png")
