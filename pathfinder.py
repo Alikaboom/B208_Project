@@ -1,19 +1,20 @@
 import osmnx as ox
 import requests
+import heapq
+from collections import deque
+import random
+import time
+import tracemalloc
 
-# setup caching so we don't spam the osm servers
 ox.settings.log_console = False
 ox.settings.use_cache = True
 
 print("downloading nuremberg street graph (this might take a minute)...")
-
-# load the drivable network for the entire city
 place = "Nuremberg, Germany"
 G = ox.graph_from_place(place, network_type='drive')
 
 print(f"graph loaded! nodes: {len(G.nodes)}, edges: {len(G.edges)}")
 
-# load api key securely
 api_key = None
 try:
     with open('.env', 'r') as f:
@@ -52,18 +53,10 @@ print("mapping hospital to the nearest graph node...")
 target_node = ox.distance.nearest_nodes(G, h_lng, h_lat)
 print(f"target mapped to node ID: {target_node}")
 
-# --- PATHFINDING ALGORITHMS ---
-
-import heapq
-
-from collections import deque
 
 def bfs_shortest_path(graph, source, target):
-    # unweighted breadth-first search using a FIFO queue
-    # optimizes for fewest number of intersections (hops)
     visited = set([source])
     previous = {node: None for node in graph.nodes}
-    
     queue = deque([source])
     
     while queue:
@@ -78,36 +71,33 @@ def bfs_shortest_path(graph, source, target):
                 previous[neighbor] = current
                 queue.append(neighbor)
                 
-    # backtracking logic with physical distance calculation
     path = []
     curr = target
-    total_physical_distance = 0.0
+    tot_dist = 0.0
     
     while curr is not None:
         path.insert(0, curr)
         prev_node = previous[curr]
         if prev_node is not None:
-            # sum the actual physical distance of the BFS route
+            # sum physical distance
             edge_data = graph.get_edge_data(prev_node, curr)
             weight = min([d['length'] for d in edge_data.values()])
-            total_physical_distance += weight
+            tot_dist += weight
         curr = prev_node
         
-    return path, total_physical_distance
+    return path, tot_dist
+
 
 def dijkstra_heap(graph, source, target):
-    # min-heap priority queue implementation for O(m log n) efficiency
     nodes = list(graph.nodes)
     distances = {node: float('inf') for node in nodes}
     previous = {node: None for node in nodes}
     distances[source] = 0
-    
     pq = [(0, source)]
     
     while pq:
         dist, current = heapq.heappop(pq)
         
-        # skip if we already found a shorter path before this got popped
         if dist > distances[current]:
             continue
             
@@ -115,7 +105,7 @@ def dijkstra_heap(graph, source, target):
             break
             
         for neighbor in graph.neighbors(current):
-            # handle osmnx multi-digraph multiple edges
+            # osmnx multidigraph edges
             edge_data = graph.get_edge_data(current, neighbor)
             weight = min([d['length'] for d in edge_data.values()])
             
@@ -133,27 +123,21 @@ def dijkstra_heap(graph, source, target):
         
     return path, distances[target]
 
+
 if __name__ == "__main__":
-    import random
-    import time
-    import tracemalloc
-    
-    # define 5 different emergency starting locations
     print("generating 5 emergency scenarios...")
     scenarios = random.sample(list(G.nodes), 5)
     
     for i, start_node in enumerate(scenarios, 1):
         print(f"\n--- scenario {i}: routing from node {start_node} to hospital {target_node} ---")
         
-        # profile bfs implementation
         tracemalloc.start()
         start_time = time.perf_counter()
         bfs_path, bfs_dist = bfs_shortest_path(G, start_node, target_node)
         bfs_time = time.perf_counter() - start_time
-        bfs_mem = tracemalloc.get_traced_memory()[1] / 1024 # peak memory in KB
+        bfs_mem = tracemalloc.get_traced_memory()[1] / 1024
         tracemalloc.stop()
         
-        # profile heap implementation
         tracemalloc.start()
         start_time = time.perf_counter()
         heap_path, heap_dist = dijkstra_heap(G, start_node, target_node)
@@ -164,8 +148,4 @@ if __name__ == "__main__":
         print(f"bfs        -> dist: {bfs_dist:.2f}m, time: {bfs_time:.4f}s, mem: {bfs_mem:.1f}KB, nodes: {len(bfs_path)}")
         print(f"dijkstra   -> dist: {heap_dist:.2f}m, time: {heap_time:.4f}s, mem: {heap_mem:.1f}KB, nodes: {len(heap_path)}")
         
-        if bfs_dist == heap_dist:
-            print("note: bfs accidentally found the exact same physical distance as dijkstra.")
-        
-        # save the route as an image
         ox.plot_graph_route(G, heap_path, route_color='r', route_linewidth=4, node_size=0, show=False, save=True, filepath=f"scenario_{i}_route.png")
