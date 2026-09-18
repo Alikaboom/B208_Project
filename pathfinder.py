@@ -92,7 +92,13 @@ def dijkstra_array(graph, source, target):
                     distances[neighbor] = alt
                     previous[neighbor] = current
                     
-    return distances, previous
+    path = []
+    curr = target
+    while curr is not None:
+        path.insert(0, curr)
+        curr = previous[curr]
+        
+    return path, distances[target]
 
 def dijkstra_heap(graph, source, target):
     # min-heap priority queue implementation for O(m log n) efficiency
@@ -124,4 +130,10 @@ def dijkstra_heap(graph, source, target):
                 previous[neighbor] = current
                 heapq.heappush(pq, (alt, neighbor))
                 
-    return distances, previous
+    path = []
+    curr = target
+    while curr is not None:
+        path.insert(0, curr)
+        curr = previous[curr]
+        
+    return path, distances[target]
