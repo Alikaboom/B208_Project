@@ -5,10 +5,10 @@ import requests
 ox.settings.log_console = False
 ox.settings.use_cache = True
 
-print("downloading munich street graph (this might take a minute)...")
+print("downloading nuremberg street graph (this might take a minute)...")
 
 # load the drivable network for the entire city
-place = "Munich, Germany"
+place = "Nuremberg, Germany"
 G = ox.graph_from_place(place, network_type='drive')
 
 print(f"graph loaded! nodes: {len(G.nodes)}, edges: {len(G.edges)}")
