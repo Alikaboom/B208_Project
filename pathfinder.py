@@ -7,9 +7,9 @@ ox.settings.use_cache = True
 
 print("downloading munich street graph (this might take a minute)...")
 
-# load the drivable network for our target area
-place = "Schwabing, Munich, Germany"
-G = ox.graph_from_address(place, dist=500, network_type='drive')
+# load the drivable network for the entire city
+place = "Munich, Germany"
+G = ox.graph_from_place(place, network_type='drive')
 
 print(f"graph loaded! nodes: {len(G.nodes)}, edges: {len(G.edges)}")
 
@@ -145,12 +145,12 @@ if __name__ == "__main__":
     for i, start_node in enumerate(scenarios, 1):
         print(f"\n--- scenario {i}: routing from node {start_node} to hospital {target_node} ---")
         
-        # profile array implementation
+        # profile bfs implementation
         tracemalloc.start()
         start_time = time.perf_counter()
-        arr_path, arr_dist = dijkstra_array(G, start_node, target_node)
-        arr_time = time.perf_counter() - start_time
-        arr_mem = tracemalloc.get_traced_memory()[1] / 1024 # peak memory in KB
+        bfs_path, bfs_dist = bfs_shortest_path(G, start_node, target_node)
+        bfs_time = time.perf_counter() - start_time
+        bfs_mem = tracemalloc.get_traced_memory()[1] / 1024 # peak memory in KB
         tracemalloc.stop()
         
         # profile heap implementation
@@ -161,8 +161,11 @@ if __name__ == "__main__":
         heap_mem = tracemalloc.get_traced_memory()[1] / 1024
         tracemalloc.stop()
         
-        print(f"array dijkstra -> dist: {arr_dist:.2f}m, time: {arr_time:.4f}s, mem: {arr_mem:.1f}KB")
-        print(f"heap  dijkstra -> dist: {heap_dist:.2f}m, time: {heap_time:.4f}s, mem: {heap_mem:.1f}KB")
+        print(f"bfs        -> dist: {bfs_dist:.2f}m, time: {bfs_time:.4f}s, mem: {bfs_mem:.1f}KB, nodes: {len(bfs_path)}")
+        print(f"dijkstra   -> dist: {heap_dist:.2f}m, time: {heap_time:.4f}s, mem: {heap_mem:.1f}KB, nodes: {len(heap_path)}")
+        
+        if bfs_dist == heap_dist:
+            print("note: bfs accidentally found the exact same physical distance as dijkstra.")
         
         # save the route as an image
         ox.plot_graph_route(G, heap_path, route_color='r', route_linewidth=4, node_size=0, show=False, save=True, filepath=f"scenario_{i}_route.png")
