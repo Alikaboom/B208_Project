@@ -58,7 +58,41 @@ import heapq
 
 def dijkstra_array(graph, source, target):
     # node-indexed array implementation for O(n^2) efficiency
-    pass
+    nodes = list(graph.nodes)
+    distances = {node: float('inf') for node in nodes}
+    previous = {node: None for node in nodes}
+    distances[source] = 0
+    
+    unvisited = set(nodes)
+    
+    while unvisited:
+        # find the unvisited node with the smallest distance (O(n) scan)
+        current = None
+        min_dist = float('inf')
+        for node in unvisited:
+            if distances[node] < min_dist:
+                min_dist = distances[node]
+                current = node
+                
+        # if the remaining nodes are unreachable or we reached the target, stop
+        if current is None or current == target:
+            break
+            
+        unvisited.remove(current)
+        
+        # update neighbors
+        for neighbor in graph.neighbors(current):
+            if neighbor in unvisited:
+                # osmnx graphs can have multiple edges between nodes, pick the shortest
+                edge_data = graph.get_edge_data(current, neighbor)
+                weight = min([d['length'] for d in edge_data.values()])
+                
+                alt = distances[current] + weight
+                if alt < distances[neighbor]:
+                    distances[neighbor] = alt
+                    previous[neighbor] = current
+                    
+    return distances, previous
 
 def dijkstra_heap(graph, source, target):
     # min-heap priority queue implementation for O(m log n) efficiency
