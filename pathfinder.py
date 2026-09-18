@@ -140,6 +140,8 @@ def dijkstra_heap(graph, source, target):
 
 if __name__ == "__main__":
     import random
+    import time
+    import tracemalloc
     
     # define 5 different emergency starting locations
     print("generating 5 emergency scenarios...")
@@ -148,11 +150,21 @@ if __name__ == "__main__":
     for i, start_node in enumerate(scenarios, 1):
         print(f"\n--- scenario {i}: routing from node {start_node} to hospital {target_node} ---")
         
+        # profile array implementation
+        tracemalloc.start()
+        start_time = time.perf_counter()
         arr_path, arr_dist = dijkstra_array(G, start_node, target_node)
+        arr_time = time.perf_counter() - start_time
+        arr_mem = tracemalloc.get_traced_memory()[1] / 1024 # peak memory in KB
+        tracemalloc.stop()
+        
+        # profile heap implementation
+        tracemalloc.start()
+        start_time = time.perf_counter()
         heap_path, heap_dist = dijkstra_heap(G, start_node, target_node)
+        heap_time = time.perf_counter() - start_time
+        heap_mem = tracemalloc.get_traced_memory()[1] / 1024
+        tracemalloc.stop()
         
-        print(f"array dijkstra -> dist: {arr_dist:.2f}m, nodes: {len(arr_path)}")
-        print(f"heap  dijkstra -> dist: {heap_dist:.2f}m, nodes: {len(heap_path)}")
-        
-        if arr_dist == heap_dist:
-            print("success: both algorithms found the exact same optimal distance.")
+        print(f"array dijkstra -> dist: {arr_dist:.2f}m, time: {arr_time:.4f}s, mem: {arr_mem:.1f}KB")
+        print(f"heap  dijkstra -> dist: {heap_dist:.2f}m, time: {heap_time:.4f}s, mem: {heap_mem:.1f}KB")
