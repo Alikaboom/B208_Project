@@ -96,4 +96,32 @@ def dijkstra_array(graph, source, target):
 
 def dijkstra_heap(graph, source, target):
     # min-heap priority queue implementation for O(m log n) efficiency
-    pass
+    nodes = list(graph.nodes)
+    distances = {node: float('inf') for node in nodes}
+    previous = {node: None for node in nodes}
+    distances[source] = 0
+    
+    pq = [(0, source)]
+    
+    while pq:
+        dist, current = heapq.heappop(pq)
+        
+        # skip if we already found a shorter path before this got popped
+        if dist > distances[current]:
+            continue
+            
+        if current == target:
+            break
+            
+        for neighbor in graph.neighbors(current):
+            # handle osmnx multi-digraph multiple edges
+            edge_data = graph.get_edge_data(current, neighbor)
+            weight = min([d['length'] for d in edge_data.values()])
+            
+            alt = dist + weight
+            if alt < distances[neighbor]:
+                distances[neighbor] = alt
+                previous[neighbor] = current
+                heapq.heappush(pq, (alt, neighbor))
+                
+    return distances, previous
