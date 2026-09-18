@@ -55,6 +55,9 @@ print(f"target mapped to node ID: {target_node}")
 
 
 def bfs_shortest_path(graph, source, target):
+    if source not in graph.nodes or target not in graph.nodes:
+        raise ValueError("Source or target node not found in graph.")
+        
     visited = set([source])
     previous = {node: None for node in graph.nodes}
     queue = deque([source])
@@ -71,6 +74,9 @@ def bfs_shortest_path(graph, source, target):
                 previous[neighbor] = current
                 queue.append(neighbor)
                 
+    if source != target and previous[target] is None:
+        return [], float('inf')
+                
     path = []
     curr = target
     tot_dist = 0.0
@@ -81,7 +87,7 @@ def bfs_shortest_path(graph, source, target):
         if prev_node is not None:
             # sum physical distance
             edge_data = graph.get_edge_data(prev_node, curr)
-            weight = min([d['length'] for d in edge_data.values()])
+            weight = min([d.get('length', 999999) for d in edge_data.values()])
             tot_dist += weight
         curr = prev_node
         
@@ -89,6 +95,9 @@ def bfs_shortest_path(graph, source, target):
 
 
 def dijkstra_heap(graph, source, target):
+    if source not in graph.nodes or target not in graph.nodes:
+        raise ValueError("Source or target node not found in graph.")
+        
     nodes = list(graph.nodes)
     distances = {node: float('inf') for node in nodes}
     previous = {node: None for node in nodes}
@@ -107,13 +116,16 @@ def dijkstra_heap(graph, source, target):
         for neighbor in graph.neighbors(current):
             # osmnx multidigraph edges
             edge_data = graph.get_edge_data(current, neighbor)
-            weight = min([d['length'] for d in edge_data.values()])
+            weight = min([d.get('length', 999999) for d in edge_data.values()])
             
             alt = dist + weight
             if alt < distances[neighbor]:
                 distances[neighbor] = alt
                 previous[neighbor] = current
                 heapq.heappush(pq, (alt, neighbor))
+                
+    if source != target and previous[target] is None:
+        return [], float('inf')
                 
     path = []
     curr = target
