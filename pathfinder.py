@@ -137,3 +137,22 @@ def dijkstra_heap(graph, source, target):
         curr = previous[curr]
         
     return path, distances[target]
+
+if __name__ == "__main__":
+    import random
+    
+    # define 5 different emergency starting locations
+    print("generating 5 emergency scenarios...")
+    scenarios = random.sample(list(G.nodes), 5)
+    
+    for i, start_node in enumerate(scenarios, 1):
+        print(f"\n--- scenario {i}: routing from node {start_node} to hospital {target_node} ---")
+        
+        arr_path, arr_dist = dijkstra_array(G, start_node, target_node)
+        heap_path, heap_dist = dijkstra_heap(G, start_node, target_node)
+        
+        print(f"array dijkstra -> dist: {arr_dist:.2f}m, nodes: {len(arr_path)}")
+        print(f"heap  dijkstra -> dist: {heap_dist:.2f}m, nodes: {len(heap_path)}")
+        
+        if arr_dist == heap_dist:
+            print("success: both algorithms found the exact same optimal distance.")
