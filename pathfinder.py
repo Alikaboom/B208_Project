@@ -78,15 +78,22 @@ def bfs_shortest_path(graph, source, target):
                 previous[neighbor] = current
                 queue.append(neighbor)
                 
-    # basic backtracking logic
+    # backtracking logic with physical distance calculation
     path = []
     curr = target
+    total_physical_distance = 0.0
     
     while curr is not None:
         path.insert(0, curr)
-        curr = previous[curr]
+        prev_node = previous[curr]
+        if prev_node is not None:
+            # sum the actual physical distance of the BFS route
+            edge_data = graph.get_edge_data(prev_node, curr)
+            weight = min([d['length'] for d in edge_data.values()])
+            total_physical_distance += weight
+        curr = prev_node
         
-    return path, len(path) - 1
+    return path, total_physical_distance
 
 def dijkstra_heap(graph, source, target):
     # min-heap priority queue implementation for O(m log n) efficiency
